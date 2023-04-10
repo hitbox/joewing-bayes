@@ -2,10 +2,14 @@
 # Joe Wingbermuehle
 # 2012-03-30
 
-from Tkinter import *
-import tkMessageBox
-import random
+# Updated to Python 3
+# Carl Harris
+# 2023-04-10
+
 import math
+import random
+
+import tkinter as tk
 
 # A node in a Bayes net.
 class BayesNode:
@@ -35,7 +39,7 @@ class BayesNode:
    def addParent(self, node, line):
       for (n, l) in self.parents:
          if n == node:
-            print "failed to addParent"
+            print("failed to addParent")
       self.parents += [(node, line)]
 
    # Remove child node.
@@ -92,7 +96,7 @@ class IndependenceChecker:
 
    def __init__(self, nodes, query, evidence):
       self.nodes = dict()
-      for n in nodes.itervalues():
+      for n in nodes.values():
          self.nodes[n.name] = n
       evidence = [abs(n) for n in evidence]
       query = [abs(n) for n in query]
@@ -107,14 +111,13 @@ class IndependenceChecker:
          if not self.nodes.has_key(n):
             valid = False
       if not valid:
-         tkMessageBox.showwarning("Bad Input", "Invalid evidence.")
+         tk.messagebox.showwarning("Bad Input", "Invalid evidence.")
          return
       a = query.pop()
       b = query.pop()
-      print "Checking independence of", a, "and", b, "given [",
-      print getListString(evidence), "]"
+      print(f"Checking independence of {a} and {b} given [{getListString(evidence)}]")
       result = self.checkIndependence(a, b, evidence)
-      msg = "Nodes " + str(a) + " and " + str(b) + " are "
+      msg = f"Nodes {a} and {b} are "
       if result:
          title = "Independent"
          msg += "independent"
@@ -124,8 +127,7 @@ class IndependenceChecker:
       if len(evidence) > 0:
          msg += " given " + getListString(evidence)
       msg += "."
-      tkMessageBox.showinfo("Independent", msg)
-      return
+      tk.messagebox.showinfo("Independent", msg)
 
    # Get a list of all undirected paths from a to b.
    def getPaths(self, a, b):
@@ -174,32 +176,32 @@ class IndependenceChecker:
    def isActive(self, a, b, c, evidence):
       if b in evidence:
          if self.isCausalChain(a, b, c):
-            print "\t\t-> causal chain with evidence (inactive)"
+            print("\t\t-> causal chain with evidence (inactive)")
             return False
          if self.isCommonCause(a, b, c):
-            print "\t\t-> common cause with evidence (inactive)"
+            print("\t\t-> common cause with evidence (inactive)")
             return False
       else:
          if self.isCausalChain(a, b, c):
-            print "\t\t-> causal chain without evidence (active)"
+            print("\t\t-> causal chain without evidence (active)")
             return True
          if self.isCommonCause(a, b, c):
-            print "\t\t-> common cause without evidence (active)"
+            print("\t\t-> common cause without evidence (active)")
             return True
 
       # Must be common effect.
       # Check all children
       if self.hasEvidence(b, evidence):
-         print "\t\t-> commmon effect with evidence (active)"
+         print("\t\t-> commmon effect with evidence (active)")
          return True
       else:
-         print "\t\t-> commmon effect without evidence (inactive)"
+         print("\t\t-> commmon effect without evidence (inactive)")
          return False
 
    # Check if a path is active given evidence.
    def checkPath(self, path, evidence):
       if len(path) >= 3:
-         print "\tChecking path: ", path
+         print(f"\tChecking path: {path}")
          x, y, z = path[0], path[1], path[2]
          if self.isActive(x, y, z, evidence):
             return self.checkPath(path[1:], evidence)
@@ -221,57 +223,56 @@ class ProbabilityDialog:
    def __init__(self, parent, node):
       self.node = node
       self.values = dict()
-      self.top = Toplevel(parent)
+      self.top = tk.Toplevel(parent)
       self.top.transient(parent)
       self.top.minsize(256, 64)
-      self.top.title("Probabilities for " + str(node.name))
+      self.top.title(f"Probabilities for {node.name}")
 
-      frame = Frame(self.top)
+      frame = tk.Frame(self.top)
 
       for (p, l) in node.parents:
-         label = Label(frame, text=str(p.name), width=3)
-         label.pack(side=LEFT)
+         label = tk.Label(frame, text=str(p.name), width=3)
+         label.pack(side=tk.LEFT)
       parents = [p.name for (p, l) in node.parents]
       prob = getQueryString([node.name], parents)
-      probStr = StringVar()
+      probStr = tk.StringVar()
       probStr.set(prob)
-      label = Entry(frame, textvariable=probStr, state=DISABLED,
+      label = tk.Entry(frame, textvariable=probStr, state=DISABLED,
                     width=10, disabledforeground="black")
-      label.pack(side=LEFT)
+      label.pack(side=tk.LEFT)
       frame.pack()
 
       for p in range(0, 1 << len(node.parents)):
-         frame = Frame(self.top)
+         frame = tk.Frame(self.top)
          for i in range(0, len(node.parents)):
             if (p & (1 << i)) != 0:
-               label = Label(frame, text="T", width=3)
+               label = tk.Label(frame, text="T", width=3)
             else:
-               label = Label(frame, text="F", width=3)
-            label.pack(side=LEFT)
+               label = tk.Label(frame, text="F", width=3)
+            label.pack(side=tk.LEFT)
          prob = 0.5
          if p in node.prob:
             prob = node.prob[p]
-         var = StringVar()
+         var = tk.StringVar()
          var.set(str(prob))
          self.values[p] = var
-         entry = Entry(frame, textvariable=var, width=10)
-         entry.pack(side=LEFT)
-         frame.pack(side=TOP)
+         entry = tk.Entry(frame, textvariable=var, width=10)
+         entry.pack(side=tk.LEFT)
+         frame.pack(side=tk.TOP)
 
-      frame = Frame(self.top)
-      b = Button(frame, text="OK", command=self.ok)
-      b.pack(side=LEFT)
-      b = Button(frame, text="Cancel", command=self.cancel)
-      b.pack(side=LEFT)
-      frame.pack(side=TOP)
+      frame = tk.Frame(self.top)
+      b = tk.Button(frame, text="OK", command=self.ok)
+      b.pack(side=tk.LEFT)
+      b = tk.Button(frame, text="Cancel", command=self.cancel)
+      b.pack(side=tk.LEFT)
+      frame.pack(side=tk.TOP)
 
    def ok(self):
       try:
          for i in range(0, 1 << len(self.node.parents)):
             self.node.prob[i] = float(self.values[i].get())
       except ValueError:
-         tkMessageBox.showwarning("Bad Input",
-                                  "Values must be floats.")
+         tk.messagebox.showwarning("Bad Input", "Values must be floats.")
       self.cancel()
 
    def cancel(self):
@@ -285,25 +286,24 @@ class Sampler:
       self.query = query
       self.evidence = evidence
       self.iterations = iterations
-      self.top = Toplevel(parent)
+      self.top = tk.Toplevel(parent)
       self.top.transient(parent)
       self.width = 320
       self.height = 240
-      self.canvas = Canvas(self.top, width=self.width, height=self.height)
-      self.message = StringVar()
-      frame = Frame(self.top)
-      label = Label(frame, textvariable=self.message, width=32)
+      self.canvas = tk.Canvas(self.top, width=self.width, height=self.height)
+      self.message = tk.StringVar()
+      frame = tk.Frame(self.top)
+      label = tk.Label(frame, textvariable=self.message, width=32)
       self.message.set("Working...")
-      button = Button(frame, text="Close", command=self.top.destroy)
-      self.canvas.pack(side=TOP)
-      label.pack(side=LEFT)
-      button.pack(side=LEFT)
-      frame.pack(side=TOP)
+      button = tk.Button(frame, text="Close", command=self.top.destroy)
+      self.canvas.pack(side=tk.TOP)
+      label.pack(side=tk.LEFT)
+      button.pack(side=tk.LEFT)
+      frame.pack(side=tk.TOP)
 
    # Method to perform sampling.
    def sample(self):
-      print "sample not implemented"
-      return
+      print("sample not implemented")
 
    # Sample using the specified function.
    def run(self, sampleFunction):
@@ -312,16 +312,16 @@ class Sampler:
       sampleValues = []
       for i in range(0, self.iterations):
          (weight, sample) = sampleFunction()
-         print "\tSample: [", getListString(sample), "] weight: ", weight,
+         print(f"\tSample: [{getListString(sample)}] weight: {weight}")
          if self.matches(sample, self.evidence):
             if self.matches(sample, self.query):
                numerator += weight
-               print "(qmatch)",
+               print("(qmatch)")
             denominator += weight
-            print "(ematch)",
+            print("(ematch)")
             if denominator > 0:
                sampleValues += [float(numerator) / float(denominator)]
-         print "=>", numerator, "/", denominator
+         print("=>", numerator, "/", denominator)
       if denominator == 0:
          self.message.set("No samples matched the evidence.")
       else:
@@ -367,12 +367,12 @@ class Sampler:
 class RejectionSampler(Sampler):
 
    def __init__(self, parent, query, evidence, iterations, nodes):
-      Sampler.__init__(self, parent, query, evidence, iterations, nodes)
+      super().__init__(parent, query, evidence, iterations, nodes)
       self.top.title("Rejection Sampler")
       self.sample()
 
    def sample(self):
-      print "Collecting", self.iterations, "samples using rejection sampling"
+      print("Collecting", self.iterations, "samples using rejection sampling")
       self.run(self.forwardSample)
 
    # Draw a sample using forward sampling.
@@ -396,12 +396,12 @@ class RejectionSampler(Sampler):
 class LikelihoodSampler(Sampler):
 
    def __init__(self, parent, query, evidence, iterations, nodes):
-      Sampler.__init__(self, parent, query, evidence, iterations, nodes)
+      super().__init__(parent, query, evidence, iterations, nodes)
       self.top.title("Likelihood-Weighted Sampler")
       self.sample()
 
    def sample(self):
-      print "Collecting", self.iterations, "samples using likelihood sampling"
+      print("Collecting", self.iterations, "samples using likelihood sampling")
       self.run(self.likelihoodSample)
 
    # Draw a sample using likelihood sampling.
@@ -429,7 +429,7 @@ class LikelihoodSampler(Sampler):
 class GibbsSampler(Sampler):
 
    def __init__(self, parent, query, evidence, iterations, nodes):
-      Sampler.__init__(self, parent, query, evidence, iterations, nodes)
+      super().__init__(parent, query, evidence, iterations, nodes)
       self.top.title("Gibbs Sampler")
 
       # Set all values to the evidence and sample.
@@ -439,7 +439,7 @@ class GibbsSampler(Sampler):
       self.sample()
 
    def sample(self):
-      print "Collecting", self.iterations, "samples using Gibbs sampling"
+      print("Collecting", self.iterations, "samples using Gibbs sampling")
       self.run(self.gibbsSample)
 
    # Draw a sample using Gibbs sampling.
@@ -466,81 +466,81 @@ class Network:
       self.freeNames = []
       self.nextName = 1
       self.master = master
-      frame = Frame(master)
-      selectFrame = Frame(frame)
-      queryFrame = Frame(frame)
-      buttonFrame = Frame(frame)
-      self.mode = IntVar()
+      frame = tk.Frame(master)
+      selectFrame = tk.Frame(frame)
+      queryFrame = tk.Frame(frame)
+      buttonFrame = tk.Frame(frame)
+      self.mode = tk.IntVar()
       self.mode.set(1)
-      rb1 = Radiobutton(selectFrame, text="Create/Move",
+      rb1 = tk.Radiobutton(selectFrame, text="Create/Move",
                         variable=self.mode, value=1,
                         command=self.changeMode)
-      rb1.pack(side=LEFT)
-      rb2 = Radiobutton(selectFrame, text="Connect",
+      rb1.pack(side=tk.LEFT)
+      rb2 = tk.Radiobutton(selectFrame, text="Connect",
                         variable=self.mode, value=2,
                         command=self.changeMode)
-      rb2.pack(side=LEFT)
-      rb3 = Radiobutton(selectFrame, text="Remove",
+      rb2.pack(side=tk.LEFT)
+      rb3 = tk.Radiobutton(selectFrame, text="Remove",
                         variable=self.mode, value=3,
                         command=self.changeMode)
-      rb3.pack(side=LEFT)
-      rb4 = Radiobutton(selectFrame, text="Probabilities",
+      rb3.pack(side=tk.LEFT)
+      rb4 = tk.Radiobutton(selectFrame, text="Probabilities",
                         variable=self.mode, value=4,
                         command=self.changeMode)
-      rb4.pack(side=LEFT)
+      rb4.pack(side=tk.LEFT)
 
-      self.canvas = Canvas(frame, width=640, height=480, bg="gray")
+      self.canvas = tk.Canvas(frame, width=640, height=480, bg="gray")
       self.canvas.bind("<Button-1>", self.push)
       self.canvas.bind("<B1-Motion>", self.motion)
       self.canvas.bind("<ButtonRelease-1>", self.release)
 
-      self.message = StringVar()
-      msg = Label(frame, textvariable=self.message)
+      self.message = tk.StringVar()
+      msg = tk.Label(frame, textvariable=self.message)
       self.changeMode()
 
-      l = Label(queryFrame, text="Query: ")
-      l.pack(side=LEFT)
-      self.query = Entry(queryFrame, width=5, validate=ALL,
+      l = tk.Label(queryFrame, text="Query: ")
+      l.pack(side=tk.LEFT)
+      self.query = tk.Entry(queryFrame, width=5, validate=tk.ALL,
                          vcmd=self.updateQuery)
-      self.query.pack(side=LEFT)
-      l = Label(queryFrame, text="Evidence: ")
-      l.pack(side=LEFT)
-      self.evidence = Entry(queryFrame, width=8, validate=ALL,
+      self.query.pack(side=tk.LEFT)
+      l = tk.Label(queryFrame, text="Evidence: ")
+      l.pack(side=tk.LEFT)
+      self.evidence = tk.Entry(queryFrame, width=8, validate=tk.ALL,
                             vcmd=self.updateQuery)
-      self.evidence.pack(side=LEFT)
-      l = Label(queryFrame, text="Iterations: ")
-      l.pack(side=LEFT)
-      it = StringVar()
+      self.evidence.pack(side=tk.LEFT)
+      l = tk.Label(queryFrame, text="Iterations: ")
+      l.pack(side=tk.LEFT)
+      it = tk.StringVar()
       vc = (master.register(self.validateIterations), '%S')
-      self.iterations = Entry(queryFrame, width=6, textvariable=it,
-                              validate=ALL, vcmd=vc)
-      self.iterations.pack(side=LEFT)
+      self.iterations = tk.Entry(queryFrame, width=6, textvariable=it,
+                              validate=tk.ALL, vcmd=vc)
+      self.iterations.pack(side=tk.LEFT)
       it.set("100")
-      b = Button(buttonFrame, text="Dependent?",
+      b = tk.Button(buttonFrame, text="Dependent?",
                  command=self.checkIndependence)
-      b.pack(side=LEFT)
-      b = Button(buttonFrame, text="Sample (LWS)", command=self.sampleLWS)
-      b.pack(side=LEFT)
-      b = Button(buttonFrame, text="Sample (Gibbs)", command=self.sampleGibbs)
-      b.pack(side=LEFT)
-      b = Button(buttonFrame, text="Sample (Rejection)", command=self.sampleRS)
-      b.pack(side=LEFT)
-      b = Button(buttonFrame, text="Exit", command=self.exit)
-      b.pack(side=LEFT)
+      b.pack(side=tk.LEFT)
+      b = tk.Button(buttonFrame, text="Sample (LWS)", command=self.sampleLWS)
+      b.pack(side=tk.LEFT)
+      b = tk.Button(buttonFrame, text="Sample (Gibbs)", command=self.sampleGibbs)
+      b.pack(side=tk.LEFT)
+      b = tk.Button(buttonFrame, text="Sample (Rejection)", command=self.sampleRS)
+      b.pack(side=tk.LEFT)
+      b = tk.Button(buttonFrame, text="Exit", command=self.exit)
+      b.pack(side=tk.LEFT)
 
-      selectFrame.pack(side=TOP)
-      msg.pack(side=TOP)
-      self.canvas.pack(side=TOP, fill=BOTH, expand=YES)
-      queryFrame.pack(side=TOP)
-      buttonFrame.pack(side=TOP)
-      frame.pack(fill=BOTH, expand=YES)
+      selectFrame.pack(side=tk.TOP)
+      msg.pack(side=tk.TOP)
+      self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=tk.YES)
+      queryFrame.pack(side=tk.TOP)
+      buttonFrame.pack(side=tk.TOP)
+      frame.pack(fill=tk.BOTH, expand=tk.YES)
 
    # Highlight nodes.
    # This is called when the query or evidence changes.
    def updateQuery(self):
       qvalues = parseNodes(self.query.get())
       evalues = parseNodes(self.evidence.get())
-      for n in self.nodes.itervalues():
+      for n in self.nodes.values():
          if (n.name in qvalues) or (-n.name in qvalues):
             self.canvas.itemconfig(n.item, fill="green")
          elif n.name in evalues:
@@ -596,7 +596,7 @@ class Network:
 
    # Perform likelihood sampling for the query and evidence.
    def sampleLWS(self):
-      nodes = [n for n in self.nodes.itervalues()]
+      nodes = [n for n in self.nodes.values()]
       query = parseNodes(self.query.get())
       evidence = parseNodes(self.evidence.get())
       try:
@@ -607,7 +607,7 @@ class Network:
 
    # Perform Gibbs sampling for the query and evidence.
    def sampleGibbs(self):
-      nodes = [n for n in self.nodes.itervalues()]
+      nodes = [n for n in self.nodes.values()]
       query = parseNodes(self.query.get())
       evidence = parseNodes(self.evidence.get())
       try:
@@ -618,7 +618,7 @@ class Network:
 
    # Perform rejection sampling for the query and evidence.
    def sampleRS(self):
-      nodes = [n for n in self.nodes.itervalues()]
+      nodes = [n for n in self.nodes.values()]
       query = parseNodes(self.query.get())
       evidence = parseNodes(self.evidence.get())
       try:
@@ -736,7 +736,7 @@ class Network:
                                           self.startNode.y + self.size / 2,
                                           self.startx + self.size / 2,
                                           self.starty + self.size / 2,
-                                          arrow=LAST)
+                                          arrow=tk.LAST)
       self.canvas.tag_lower(self.line)
 
    # Update the line for a connection.
@@ -810,8 +810,7 @@ def parseNodes(nodes):
             i = int(s)
             result.add(i)
          except ValueError:
-            print "Could not parse '" + s + "'"
-            pass
+            print(f"Could not part '{s}'")
    return result
 
 # Get a string representation of a query given evidence.
@@ -819,12 +818,11 @@ def getQueryString(query, evidence):
    queryString = getListString(query)
    if len(evidence) > 0:
       evidenceString = getListString(evidence)
-      return "P(" + queryString + "|" + evidenceString + ")"
+      return f"P({queryString}|{evidenceString})"
    else:
-      return "P(" + queryString + ")"
+      return f"P({queryString})"
 
-root = Tk()
+root = tk.Tk()
 root.title("Bayes")
 network = Network(root)
 root.mainloop()
-
