@@ -812,15 +812,7 @@ class Network:
 
 # Get a string representation of a list of numbers.
 def getListString(values):
-    result = ""
-    i = 0
-    count = len(values)
-    for v in values:
-        result += str(v)
-        i += 1
-        if i < count:
-            result += ","
-    return result
+    return ",".join(map(str, values))
 
 # Parse a list of nodes.
 def parseNodes(nodes):
