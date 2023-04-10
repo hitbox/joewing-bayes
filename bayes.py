@@ -111,6 +111,7 @@ class BayesNode:
                 result *= pTrue
         return result
 
+
 class IndependenceChecker:
     """
     Class to check for independence among two nodes in a Bayes net.
