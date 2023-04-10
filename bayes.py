@@ -11,8 +11,10 @@ import random
 
 import tkinter as tk
 
-# A node in a Bayes net.
 class BayesNode:
+    """
+    A node in a Bayes net.
+    """
 
     def __init__(self, item, textItem, name, x, y):
         self.item = item
@@ -24,9 +26,11 @@ class BayesNode:
         self.children = []
         self.prob = dict()
 
-    # Add a child node connected by line.
-    # Returns false if this is an invalid connection.
     def addChild(self, node, line):
+        """
+        Add a child node connected by line.
+        Returns false if this is an invalid connection.
+        """
         if node == self:
             return False
         for (n, l) in self.children:
@@ -35,31 +39,43 @@ class BayesNode:
         self.children += [(node, line)]
         return True
 
-    # Add a parent node connected by line.
     def addParent(self, node, line):
+        """
+        Add a parent node connected by line.
+        """
         for (n, l) in self.parents:
             if n == node:
                 print("failed to addParent")
         self.parents += [(node, line)]
 
-    # Remove child node.
     def removeChild(self, node):
+        """
+        Remove child node.
+        """
         self.children = [(c, l) for (c, l) in self.children if c != node]
 
-    # Remove parent node.
     def removeParent(self, node):
+        """
+        Remove parent node.
+        """
         self.parents = [(p, l) for (p, l) in self.parents if p != node]
 
-    # Determine if node is a child of this node.
     def isChild(self, node):
+        """
+        Determine if node is a child of this node.
+        """
         return node in [c for (c, l) in self.children]
 
-    # Determine if node is a parent of this node.
     def isParent(self, node):
+        """
+        Determine if node is a parent of this node.
+        """
         return node in [p for (p, l) in self.parents]
 
-    # Look up a probability in the probability table given evidence.
     def getProbability(self, evidence):
+        """
+        Look up a probability in the probability table given evidence.
+        """
         evalue = 0
         index = 1
         for (p, l) in self.parents:
@@ -71,13 +87,17 @@ class BayesNode:
         else:
             return 0.5
 
-    # Draw a sample given evidence.
     def draw(self, evidence):
+        """
+        Draw a sample given evidence.
+        """
         pTrue = self.getProbability(evidence)
         return random.random() < pTrue
 
-    # Compute the probability of changing states.
     def computeProbability(self, values):
+        """
+        Compute the probability of changing states.
+        """
         pTrue = self.getProbability(values)
         if self.name in values:
             result = 1.0 - pTrue
@@ -91,8 +111,10 @@ class BayesNode:
                 result *= pTrue
         return result
 
-# Class to check for independence among two nodes in a Bayes net.
 class IndependenceChecker:
+    """
+    Class to check for independence among two nodes in a Bayes net.
+    """
 
     def __init__(self, nodes, query, evidence):
         self.nodes = dict()
@@ -129,8 +151,10 @@ class IndependenceChecker:
         msg += "."
         tk.messagebox.showinfo("Independent", msg)
 
-    # Get a list of all undirected paths from a to b.
     def getPaths(self, a, b):
+        """
+        Get a list of all undirected paths from a to b.
+        """
         a, b = int(a), int(b)
         paths = []
         visited = set()
@@ -146,8 +170,10 @@ class IndependenceChecker:
                     queue += [(n.name, path + [n.name])]
         return paths
 
-    # Determine if a, b, c forms a causal chain.
     def isCausalChain(self, a, b, c):
+        """
+        Determine if a, b, c forms a causal chain.
+        """
         if self.nodes[a].isChild(self.nodes[b]) and \
             self.nodes[b].isChild(self.nodes[c]):
             return True
@@ -156,15 +182,19 @@ class IndependenceChecker:
             return True
         return False
 
-    # Determine if a, b, c is a common cause.
     def isCommonCause(self, a, b, c):
+        """
+        Determine if a, b, c is a common cause.
+        """
         if self.nodes[a].isParent(self.nodes[b]) and \
             self.nodes[c].isParent(self.nodes[b]):
             return True
         return False
 
-    # Determine if there is evidence for n or a child of n.
     def hasEvidence(self, n, evidence):
+        """
+        Determine if there is evidence for n or a child of n.
+        """
         if n in evidence:
             return True
         for (c, l) in self.nodes[n].children:
@@ -172,8 +202,10 @@ class IndependenceChecker:
                 return True
         return False
 
-    # Determine if the path a, b, c given evidence is active.
     def isActive(self, a, b, c, evidence):
+        """
+        Determine if the path a, b, c given evidence is active.
+        """
         if b in evidence:
             if self.isCausalChain(a, b, c):
                 print("\t\t-> causal chain with evidence (inactive)")
@@ -198,8 +230,10 @@ class IndependenceChecker:
             print("\t\t-> commmon effect without evidence (inactive)")
             return False
 
-    # Check if a path is active given evidence.
     def checkPath(self, path, evidence):
+        """
+        Check if a path is active given evidence.
+        """
         if len(path) >= 3:
             print(f"\tChecking path: {path}")
             x, y, z = path[0], path[1], path[2]
@@ -210,16 +244,20 @@ class IndependenceChecker:
         else:
             return False      # All active => dependent
 
-    # Check if a and b are independent given evidence.
     def checkIndependence(self, a, b, evidence):
+        """
+        Check if a and b are independent given evidence.
+        """
         for path in self.getPaths(a, b):
             if not self.checkPath(path, evidence):
                 return False
         return True
 
 
-# Class to prompt for probabilities.
 class ProbabilityDialog:
+    """
+    Class to prompt for probabilities.
+    """
 
     def __init__(self, parent, node):
         self.node = node
@@ -280,8 +318,10 @@ class ProbabilityDialog:
         self.top.destroy()
 
 
-# Base class for sampling a Bayes net.
 class Sampler:
+    """
+    Base class for sampling a Bayes net.
+    """
 
     def __init__(self, parent, query, evidence, iterations, nodes):
         self.nodes = nodes
@@ -303,12 +343,16 @@ class Sampler:
         button.pack(side=tk.LEFT)
         frame.pack(side=tk.TOP)
 
-    # Method to perform sampling.
     def sample(self):
+        """
+        Method to perform sampling.
+        """
         print("sample not implemented")
 
-    # Sample using the specified function.
     def run(self, sampleFunction):
+        """
+        Sample using the specified function.
+        """
         numerator = 0
         denominator = 0
         sampleValues = []
@@ -342,8 +386,10 @@ class Sampler:
             self.canvas.create_oval(x, y, x + 1, y + 1)
             x += xscale
 
-    # Determine if values matches a sample.
     def matches(self, sample, values):
+        """
+        Determine if values matches a sample.
+        """
         for v in values:
             if v > 0:
                 if v not in sample:
@@ -353,8 +399,10 @@ class Sampler:
                     return False
         return True
 
-    # Get nodes that are ready to be sampled.
     def getReadyNodes(self, sampled):
+        """
+        Get nodes that are ready to be sampled.
+        """
         readyNodes = []
         for n in self.nodes:
             if n.name not in sampled:
@@ -368,8 +416,10 @@ class Sampler:
         return readyNodes
 
 
-# Class to perform rejection sampling.
 class RejectionSampler(Sampler):
+    """
+    Class to perform rejection sampling.
+    """
 
     def __init__(self, parent, query, evidence, iterations, nodes):
         super().__init__(parent, query, evidence, iterations, nodes)
@@ -380,9 +430,11 @@ class RejectionSampler(Sampler):
         print("Collecting", self.iterations, "samples using rejection sampling")
         self.run(self.forwardSample)
 
-    # Draw a sample using forward sampling.
-    # The function that calls this function will do the rejection.
     def forwardSample(self):
+        """
+        Draw a sample using forward sampling.
+        The function that calls this function will do the rejection.
+        """
         sampled = set()
         values = []
         queue = self.getReadyNodes(sampled)
@@ -398,8 +450,10 @@ class RejectionSampler(Sampler):
         return (1, values)
 
 
-# Class to perform likelihood weighted sampling.
 class LikelihoodSampler(Sampler):
+    """
+    Class to perform likelihood weighted sampling.
+    """
 
     def __init__(self, parent, query, evidence, iterations, nodes):
         super().__init__(parent, query, evidence, iterations, nodes)
@@ -410,8 +464,10 @@ class LikelihoodSampler(Sampler):
         print("Collecting", self.iterations, "samples using likelihood sampling")
         self.run(self.likelihoodSample)
 
-    # Draw a sample using likelihood sampling.
     def likelihoodSample(self):
+        """
+        Draw a sample using likelihood sampling.
+        """
         sampled = set()
         values = []
         queue = self.getReadyNodes(sampled)
@@ -449,8 +505,10 @@ class GibbsSampler(Sampler):
         print("Collecting", self.iterations, "samples using Gibbs sampling")
         self.run(self.gibbsSample)
 
-    # Draw a sample using Gibbs sampling.
     def gibbsSample(self):
+        """
+        Draw a sample using Gibbs sampling.
+        """
 
         # Pick a value to change and change it.
         node = random.choice(self.variables)
@@ -463,8 +521,10 @@ class GibbsSampler(Sampler):
         return (1, self.state)
 
 
-# Class to allow construction of a Bayes net.
 class Network:
+    """
+    Class to allow construction of a Bayes net.
+    """
 
     def __init__(self, master):
         self.size = 32
@@ -543,9 +603,11 @@ class Network:
         buttonFrame.pack(side=tk.TOP)
         frame.pack(fill=tk.BOTH, expand=tk.YES)
 
-    # Highlight nodes.
-    # This is called when the query or evidence changes.
     def updateQuery(self):
+        """
+        Highlight nodes.
+        This is called when the query or evidence changes.
+        """
         qvalues = parseNodes(self.query.get())
         evalues = parseNodes(self.evidence.get())
         for n in self.nodes.values():
@@ -559,8 +621,10 @@ class Network:
                 self.canvas.itemconfig(n.item, fill="black")
         return True
 
-    # Validate the iterations input.
     def validateIterations(self, s):
+        """
+        Validate the iterations input.
+        """
         if s == '':
             return True
         try:
@@ -571,8 +635,10 @@ class Network:
             pass
         return False
 
-    # Change input modes.
     def changeMode(self):
+        """
+        Change input modes.
+        """
         mode = self.mode.get()
         if mode == 1:
             self.message.set("Click to create or drag to move")
@@ -583,8 +649,10 @@ class Network:
         elif mode == 4:
             self.message.set("Click to modify probabilities")
 
-    # Button push.
     def push(self, event):
+        """
+        Button push.
+        """
         mode = self.mode.get()
         if mode == 1:
             self.select(event)
@@ -595,28 +663,36 @@ class Network:
         elif mode == 4:
             self.setProbabilities(event)
 
-    # Mouse drag.
     def motion(self, event):
+        """
+        Mouse drag.
+        """
         mode = self.mode.get()
         if mode == 1:
             self.move(event)
         elif mode == 2:
             self.updateLine(event)
 
-    # Mouse release.
     def release(self, event):
+        """
+        Mouse release.
+        """
         mode = self.mode.get()
         if mode == 2:
             self.stopLine(event)
 
-    # Check if the two nodes in the query are independent given the evidence.
     def checkIndependence(self):
+        """
+        Check if the two nodes in the query are independent given the evidence.
+        """
         query = parseNodes(self.query.get())
         evidence = parseNodes(self.evidence.get())
         d = IndependenceChecker(self.nodes, query, evidence)
 
-    # Perform likelihood sampling for the query and evidence.
     def sampleLWS(self):
+        """
+        Perform likelihood sampling for the query and evidence.
+        """
         nodes = [n for n in self.nodes.values()]
         query = parseNodes(self.query.get())
         evidence = parseNodes(self.evidence.get())
@@ -626,8 +702,10 @@ class Network:
             iterations = 100
         LikelihoodSampler(self.master, query, evidence, iterations, nodes)
 
-    # Perform Gibbs sampling for the query and evidence.
     def sampleGibbs(self):
+        """
+        Perform Gibbs sampling for the query and evidence.
+        """
         nodes = [n for n in self.nodes.values()]
         query = parseNodes(self.query.get())
         evidence = parseNodes(self.evidence.get())
@@ -637,8 +715,10 @@ class Network:
             iterations = 100
         GibbsSampler(self.master, query, evidence, iterations, nodes)
 
-    # Perform rejection sampling for the query and evidence.
     def sampleRS(self):
+        """
+        Perform rejection sampling for the query and evidence.
+        """
         nodes = [n for n in self.nodes.values()]
         query = parseNodes(self.query.get())
         evidence = parseNodes(self.evidence.get())
@@ -648,12 +728,16 @@ class Network:
             iterations = 100
         RejectionSampler(self.master, query, evidence, iterations, nodes)
 
-    # Exit the program.
     def exit(self):
+        """
+        Exit the program.
+        """
         self.master.destroy()
 
-    # Set probabilities for the selected node.
     def setProbabilities(self, event):
+        """
+        Set probabilities for the selected node.
+        """
         self.startx = self.canvas.canvasx(event.x) - self.size / 2
         self.starty = self.canvas.canvasy(event.y) - self.size / 2
         items = self.canvas.find_overlapping(self.startx, self.starty,
@@ -664,8 +748,10 @@ class Network:
                 p = ProbabilityDialog(self.master, self.nodes[i])
                 return
 
-    # Get the next available node name.
     def getName(self):
+        """
+        Get the next available node name.
+        """
         if len(self.freeNames) > 0:
             name = self.freeNames[0]
             self.freeNames = self.freeNames[1:]
@@ -674,13 +760,17 @@ class Network:
             self.nextName += 1
         return name
 
-    # Release a node name so it can be reused.
     def releaseName(self, name):
+        """
+        Release a node name so it can be reused.
+        """
         self.freeNames += [name]
         list.sort(self.freeNames)
 
-    # Create a node.
     def createNode(self, x, y):
+        """
+        Create a node.
+        """
         name = self.getName()
         item = self.canvas.create_oval(x, y, x + self.size, y + self.size,
                                        fill="black")
@@ -690,8 +780,10 @@ class Network:
         self.nodes[item] = node
         return item
 
-    # Select or create a node.
     def select(self, event):
+        """
+        Select or create a node.
+        """
         offset = self.size / 2
         x = self.canvas.canvasx(event.x) - offset
         y = self.canvas.canvasy(event.y) - offset
@@ -713,8 +805,10 @@ class Network:
         self.startx = x
         self.starty = y
 
-    # Move a node.
     def move(self, event):
+        """
+        Move a node.
+        """
         offset = self.size / 2
         x = self.canvas.canvasx(event.x) - offset
         y = self.canvas.canvasy(event.y) - offset
@@ -729,8 +823,10 @@ class Network:
         for (n, l) in node.children:
             self.drawLine(l, node, n)
 
-    # Move a line to connect node a to b.
     def drawLine(self, line, a, b):
+        """
+        Move a line to connect node a to b.
+        """
         offset = self.size / 2
         x, y = b.x + offset, b.y + offset
         angle = math.atan2(b.y - a.y, b.x - a.x)
@@ -739,8 +835,10 @@ class Network:
         y2 = b.y + offset - offset * math.sin(angle)
         self.canvas.coords(line, (x1, y1, x2, y2))
 
-    # Start forming a connection.
     def startLine(self, event):
+        """
+        Start forming a connection.
+        """
         self.startx = self.canvas.canvasx(event.x) - self.size / 2
         self.starty = self.canvas.canvasy(event.y) - self.size / 2
         items = self.canvas.find_overlapping(self.startx, self.starty,
@@ -760,16 +858,20 @@ class Network:
                                             arrow=tk.LAST)
         self.canvas.tag_lower(self.line)
 
-    # Update the line for a connection.
     def updateLine(self, event):
+        """
+        Update the line for a connection.
+        """
         x = self.canvas.canvasx(event.x)
         y = self.canvas.canvasy(event.y)
         c = self.canvas.coords(self.line)
         c = c[0], c[1], x, y
         self.canvas.coords(self.line, c)
 
-    # Finish a connection.
     def stopLine(self, event):
+        """
+        Finish a connection.
+        """
         offset = self.size / 2
         x = self.canvas.canvasx(event.x) - offset
         y = self.canvas.canvasy(event.y) - offset
@@ -788,8 +890,10 @@ class Network:
             return
         self.drawLine(self.line, self.startNode, node)
 
-    # Remove the selected node.
     def remove(self, event):
+        """
+        Remove the selected node.
+        """
         x = self.canvas.canvasx(event.x) - self.size / 2
         y = self.canvas.canvasy(event.y) - self.size / 2
         items = self.canvas.find_overlapping(x, y, x + self.size, y + self.size)
@@ -810,12 +914,16 @@ class Network:
             self.canvas.delete(item)
             self.nodes.pop(item)
 
-# Get a string representation of a list of numbers.
 def getListString(values):
+    """
+    Get a string representation of a list of numbers.
+    """
     return ",".join(map(str, values))
 
-# Parse a list of nodes.
 def parseNodes(nodes):
+    """
+    Parse a list of nodes.
+    """
     result = set()
     for n in nodes.split():
         for s in n.split(","):
@@ -826,8 +934,10 @@ def parseNodes(nodes):
                 print(f"Could not part '{s}'")
     return result
 
-# Get a string representation of a query given evidence.
 def getQueryString(query, evidence):
+    """
+    Get a string representation of a query given evidence.
+    """
     queryString = getListString(query)
     if len(evidence) > 0:
         evidenceString = getListString(evidence)
