@@ -368,7 +368,7 @@ class Sampler:
                 print("(ematch)")
                 if denominator > 0:
                     sampleValues += [float(numerator) / float(denominator)]
-            print("=>", numerator, "/", denominator)
+            print(f"=> {numerator} / {denominator}")
         if denominator == 0:
             self.message.set("No samples matched the evidence.")
         else:
@@ -428,7 +428,7 @@ class RejectionSampler(Sampler):
         self.sample()
 
     def sample(self):
-        print("Collecting", self.iterations, "samples using rejection sampling")
+        print(f"Collecting {self.iterations} samples using rejection sampling")
         self.run(self.forwardSample)
 
     def forwardSample(self):
@@ -462,7 +462,7 @@ class LikelihoodSampler(Sampler):
         self.sample()
 
     def sample(self):
-        print("Collecting", self.iterations, "samples using likelihood sampling")
+        print(f"Collecting {self.iterations} samples using likelihood sampling")
         self.run(self.likelihoodSample)
 
     def likelihoodSample(self):
@@ -503,7 +503,7 @@ class GibbsSampler(Sampler):
         self.sample()
 
     def sample(self):
-        print("Collecting", self.iterations, "samples using Gibbs sampling")
+        print(f"Collecting {self.iterations} samples using Gibbs samples")
         self.run(self.gibbsSample)
 
     def gibbsSample(self):
